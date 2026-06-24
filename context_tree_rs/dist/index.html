@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Context Tree</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Columna 1: arbol del proyecto ──────────────────────────── -->
+  <section class="panel" id="col-tree">
+    <div class="panel-header">
+      <span class="panel-title">Proyecto</span>
+      <span class="spacer"></span>
+      <button id="btn-config" class="btn-mini" title="Configuracion">[config]</button>
+      <span class="kbd-hint">Ctrl+P</span>
+    </div>
+
+    <div class="path-bar">
+      <span class="path-prefix">&gt;</span>
+      <input id="root-input" type="text" spellcheck="false" />
+      <button id="btn-browse-root" class="btn-icon" title="Elegir carpeta">...</button>
+      <button id="btn-load">Cargar</button>
+    </div>
+
+    <div id="tree-container" class="tree-container"></div>
+
+    <div class="tree-footer">
+      <button id="btn-clear-selection">Limpiar seleccion</button>
+      <button id="btn-blacklist" class="btn-danger">Lista negra</button>
+      <span id="sel-count">0 seleccionados</span>
+    </div>
+  </section>
+
+  <!-- ── Columna 2: busqueda rapida ──────────────────────────────── -->
+  <section class="panel" id="col-search">
+    <div class="panel-header">
+      <span class="panel-title">Busqueda rapida</span>
+      <span class="spacer"></span>
+      <span class="subtle-hint">busca y navega</span>
+    </div>
+    <div class="search-box">
+      <input id="search-input" placeholder="nombre o ruta parcial..." spellcheck="false" />
+      <button id="search-clear" class="btn-icon">X</button>
+    </div>
+    <div id="search-count"></div>
+    <div id="search-results" class="tree-container"></div>
+  </section>
+
+  <!-- ── Columna 3: generar contexto ──────────────────────────────── -->
+  <section class="panel" id="col-generate">
+    <div class="panel-header">
+      <span class="panel-title">Generar contexto</span>
+    </div>
+
+    <div class="opts">
+      <div class="opts-row">
+        <label>Nombre:</label>
+        <input id="out-name" type="text" value="contexto" placeholder="nombre_sin_extension" />
+        <span class="ext-label">.txt</span>
+      </div>
+      <div class="opts-row">
+        <label>Directorio:</label>
+        <input id="out-dir" type="text" class="mono" />
+        <button id="btn-browse-outdir" class="btn-icon">...</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-generate" class="btn-primary">Generar .txt</button>
+      <button id="btn-copy" class="btn-success">Copiar</button>
+      <button id="btn-bash" class="btn-purple">Bash</button>
+    </div>
+
+    <div class="preview-wrap">
+      <div id="token-info"></div>
+      <textarea id="preview" readonly placeholder="La vista previa del contexto generado aparecera aqui..."></textarea>
+    </div>
+
+    <div id="status-bar">Listo | Ctrl+P buscar | Click derecho = lista negra</div>
+  </section>
+
+</div>
+
+<!-- ── Modal: lista negra ─────────────────────────────────────────── -->
+<div id="overlay-blacklist" class="overlay hidden">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2>[x] Rutas en lista negra</h2>
+      <p>Estas rutas no aparecen en el arbol ni en el contexto generado</p>
+    </div>
+    <div class="modal-body" id="blacklist-list"></div>
+    <div class="modal-footer">
+      <button id="btn-bl-remove" class="btn-success">Quitar seleccionados</button>
+      <button id="btn-bl-clear" class="btn-danger">Limpiar todo</button>
+      <span class="spacer"></span>
+      <span id="bl-count" class="muted"></span>
+      <button id="btn-bl-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: configuracion ───────────────────────────────────────── -->
+<div id="overlay-config" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Ruta predeterminada del proyecto</h2>
+      <p>Si esta configurada, la app abrira directamente esa carpeta al iniciar sin preguntar.</p>
+    </div>
+    <div class="modal-body">
+      <p id="cfg-current" class="muted" style="font-family: var(--mono); font-size: 11px;"></p>
+    </div>
+    <div class="modal-footer" style="flex-wrap: wrap;">
+      <button id="btn-cfg-use-current">Usar ruta actual del arbol</button>
+      <button id="btn-cfg-browse">Elegir otra carpeta</button>
+      <button id="btn-cfg-clear" class="btn-danger">Quitar predeterminada</button>
+      <span class="spacer"></span>
+      <button id="btn-cfg-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: comando bash ────────────────────────────────────────── -->
+<div id="overlay-bash" class="overlay hidden">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2>Comando bash equivalente</h2>
+    </div>
+    <div class="modal-body">
+      <textarea id="bash-output" readonly></textarea>
+    </div>
+    <div class="modal-footer">
+      <span class="spacer"></span>
+      <button id="btn-bash-copy">Copiar comando</button>
+      <button id="btn-bash-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Command palette (Ctrl+P) ───────────────────────────────────── -->
+<div id="command-palette" class="overlay hidden">
+  <div class="palette-box">
+    <div class="palette-top">
+      <span>Command Palette</span>
+      <span>ESC cerrar | Enter seleccionar</span>
+    </div>
+    <input id="palette-input" placeholder="Escribe para buscar..." spellcheck="false" />
+    <div id="palette-results"></div>
+    <div id="palette-footer">Escribe para buscar...</div>
+  </div>
+</div>
+
+<!-- ── Menu contextual (click derecho en el arbol) ────────────────── -->
+<div id="context-menu" class="context-menu hidden">
+  <div class="context-menu-item" id="ctx-add-blacklist">[BLOQUEAR] Agregar a lista negra</div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
